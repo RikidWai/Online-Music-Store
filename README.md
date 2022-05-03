@@ -1,4 +1,5 @@
 # Online-Music-Store
+Individual proj for comp3322 World Wide Web
 
 ## Preview 
 
