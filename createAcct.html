@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create New Account</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="shortcut icon" href="#" />
+    <script src="main.js"></script>
+  </head>
+
+  <body class="formPage">
+    <script src="headerBar.js"></script>
+    <div class="topnavMargin">
+      <main>
+        <div class="formContainer">
+          <h1>Music Store - Create Account</h1>
+          <!-- TODO Cannot use form Customise alert when missing msg -->
+          <!-- TODO to remove default values -->
+          <input type="text" placeholder="Desired Username" name="username" required />
+          <input type="password" placeholder="Desired Password" name="pwd" required />
+          <button id="regFormButn" class="formButn">CONFIRM</button>
+          <a href="login.html" class="formButn" role="button">BACK</a>
+          <span id="status"></span>
+        </div>
+        <div class="crop">
+          <img
+            src="https://media.newyorker.com/photos/5fb2a9674169cfc0421fd9f8/master/w_2240,c_limit/2020-YearinReview-BestMusic.gif"
+          />
+        </div>
+      </main>
+    </div>
+    <script>
+      let username = document.querySelector("input[name='username']");
+      let pwd = document.querySelector("input[name='pwd']");
+      username.focus();
+      let status = document.getElementById("regStatus");
+
+      document.getElementById("regFormButn").addEventListener("click", () => {
+        console.log(status);
+        if (username.validity.valueMissing) {
+          alert("Please do not leave the fields empty!!");
+          username.focus();
+          return;
+        }
+        if (pwd.validity.valueMissing) {
+          alert("Please do not leave the fields empty!!");
+          pwd.focus();
+          return;
+        }
+        let xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function () {
+          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            if (xmlhttp.responseText == "Success") {
+              let msgArea = document.getElementsByClassName("formContainer")[0];
+              msgArea.innerHTML = "<h1 class='msg'>" + "Account created! Welcome" + "</h1>";
+              setTimeout(() => {
+                location.replace("login.html");
+              }, 3000);
+            } else {
+              let msgArea = document.getElementsByClassName("formContainer")[0];
+              msgArea.innerHTML = "<h1 class='msg'>" + "Account already existed" + "</h1>";
+              msgArea.innerHTML += "<h1 class='msg'>Redirecting to Sign Up</h1>";
+              setTimeout(() => {
+                location.replace("createAcct.html");
+              }, 3000);
+            }
+          }
+        };
+        xmlhttp.open("POST", "create.php", true);
+        xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xmlhttp.send("username=" + username.value + "&pwd=" + pwd.value);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <script src="main.js"></script>
+    <link rel="shortcut icon" href="#" />
+  </head>
+
+  <body>
+    <main>
+      <section id="userSignIn">
+        <table>
+          <tr>
+            <td><h1>I'm a new Customer</h1></td>
+            <td><h1>I'm already a customer</h1></td>
+          </tr>
+          <tr>
+            <td><p>Please Check out below</p></td>
+            <td><a href="login.html">Sign In</a></td>
+          </tr>
+        </table>
+        <hr />
+        <div id="quickSignUp">
+          <h1>Create Account :</h1>
+          <label for="username">Username Name : </label>
+          <input type="text" placeholder="Username" name="username" required />
+          <span id="warning">Username Duplicated</span> <br />
+          <br />
+          <label for="pwd">Password : </label>
+          <input type="password" placeholder="Password" name="pwd" required />
+        </div>
+      </section>
+      <section id="customerInfo">
+        <h3 id="customerInfoTitle">Delivery Address</h3>
+        <form>
+          <label for="fullName">Full Name : </label>
+          <input type="text" id="fullName" name="fullName" placeholder="Required" required /><br /><br />
+          <label for="compName">Company Name : </label>
+          <input type="text" id="compName" name="compName" /><br /><br />
+          <label for="addrline1">Address Line 1 : </label>
+          <input type="text" id="addrline1" name="addrline1" placeholder="Required" required /><br /><br />
+          <label for="addrline2">Address Line 2 : </label>
+          <input type="text" id="addrline2" name="addrline2" /><br /><br />
+          <label for="city">City : </label>
+          <input type="text" id="city" name="city" placeholder="Required" required /><br /><br />
+          <label for="region">Region / State / District : </label>
+          <input type="text" id="region" name="region" /><br /><br />
+          <label for="country">Country : </label>
+          <input type="text" id="country" name="country" placeholder="Required" required /><br /><br />
+          <label for="postZipCode">Postcode Zip Code : </label>
+          <input type="text" id="postZipCode" name="postZipCode" placeholder="Required" required /><br /><br />
+          <hr />
+        </form>
+      </section>
+      <section id="cartInfo">
+        <p>Your Order : (<a href="cart.html">Change</a>)</p>
+        <b>Free Standard Shipping</b>
+        <div id="musicList"></div>
+        <h3 id="totalPrice"></h3>
+        <button type="submit" id="confirmButn">Confirm</button>
+      </section>
+    </main>
+  </body>
+  <script>
+    let cart;
+    let totalPrice = 0;
+
+    let username = document.querySelector("input[name='username']");
+    let pwd = document.querySelector("input[name='pwd']");
+
+    let fullName = document.getElementById("fullName");
+    let companyName = document.getElementById("compName");
+    let addrline1 = document.getElementById("addrline1");
+    let addrline2 = document.getElementById("addrline2");
+    let city = document.getElementById("city");
+    let region = document.getElementById("region");
+    let country = document.getElementById("country");
+    let postZipCode = document.getElementById("postZipCode");
+
+    async function loadCart() {
+      let isAuthenticated = await checkIsAuthenticated();
+      if (isAuthenticated) {
+        let title = document.getElementById("customerInfoTitle");
+        title.outerHTML = "<h1>" + "Delivery Address" + "</h1>";
+
+        cart = await getCart();
+        username.removeAttribute("required");
+        pwd.removeAttribute("required");
+        document.getElementById("userSignIn").style.display = "none";
+        document.getElementById("confirmButn").addEventListener("click", () => {
+          if (isValidAddress()) {
+            clearCart();
+            getInvoice();
+            location.replace("invoice.html");
+          }
+        });
+      } else {
+        cart = sessionStorage.cart == null ? [] : JSON.parse(sessionStorage.cart);
+        document.getElementById("confirmButn").addEventListener("click", async () => {
+          if (username.validity.valueMissing) {
+            alert("Username is missing!!");
+            username.focus();
+            return;
+          }
+          if (pwd.validity.valueMissing) {
+            alert("Password is missing!!");
+            pwd.focus();
+            return;
+          }
+
+          let isSignUp = await isReg(username);
+          console.log(isSignUp);
+          if (isSignUp) {
+            document.getElementById("warning").style.display = "inline-block";
+            username.value = "";
+            username.focus();
+            return;
+          } else {
+            document.getElementById("warning").style.display = "none";
+          }
+
+          if (isValidAddress()) {
+            getInvoice();
+            signUp(username, pwd);
+
+            location.replace("invoice.html");
+          }
+        });
+      }
+
+      for (let music of cart) {
+        document.getElementById("musicList").innerHTML +=
+          "<div>" + music.quantity + " x " + music.musicName + "  HK$ " + music.price * music.quantity + "</div>";
+        totalPrice += music.price * music.quantity;
+      }
+
+      document.getElementById("totalPrice").innerHTML = "Total Price : HK$ " + totalPrice;
+    }
+
+    async function isReg(username) {
+      try {
+        let response = await fetch("create.php?username=" + username.value);
+        if (response.status == 200) {
+          let data = await response.text();
+          // if fail means there is a duplicate key
+          return data == "Invalid" ? true : false;
+        }
+      } catch (error) {
+        console.log("error");
+      }
+    }
+
+    async function clearCart() {
+      try {
+        let init = {
+          method: "POST",
+          body: "method=DELETE&filter=all",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        };
+        let response = await fetch("cart.php?", init);
+        if (response.status == 200) {
+          let data = await response.text();
+          // if fail means there is a duplicate key
+          return data == "Invalid" ? true : false;
+        }
+      } catch (error) {
+        console.log("error");
+      }
+    }
+
+    function isValidAddress() {
+      if (fullName.validity.valueMissing) {
+        alert("Please do not leave the fields empty!!");
+        fullName.focus();
+        return false;
+      }
+      if (addrline1.validity.valueMissing) {
+        alert("Please do not leave the fields empty!!");
+        addrline1.focus();
+        return false;
+      }
+      if (city.validity.valueMissing) {
+        alert("Please do not leave the fields empty!!");
+        city.focus();
+        return false;
+      }
+      if (region.validity.valueMissing) {
+        alert("Please do not leave the fields empty!!");
+        region.focus();
+        return false;
+      }
+      if (postZipCode.validity.valueMissing) {
+        alert("Please do not leave the fields empty!!");
+        postZipCode.focus();
+        return false;
+      }
+      return true;
+    }
+
+    // get invoice info and store to session
+    function getInvoice() {
+      let invoice = {};
+      invoice.fullName = fullName.value;
+      invoice.addrline1 = addrline1.value;
+      invoice.city = city.value;
+      invoice.country = country.value;
+      invoice.postZipCode = postZipCode.value;
+      invoice.cart = cart;
+      invoice.companyName = companyName.value == "" ? "NA" : companyName.value;
+      invoice.region = region.value == "" ? "NA" : region.value;
+      invoice.addrline2 = addrline2.value == "" ? "NA" : addrline2.value;
+      sessionStorage.invoice = JSON.stringify(invoice);
+    }
+
+    // Get music in cart of the user
+    async function getCart() {
+      try {
+        let response = await fetch("cart.php?filter=all");
+
+        if (response.status == 200) {
+          let data = await response.json();
+          return data;
+        }
+      } catch (error) {
+        console.log("error");
+      }
+    }
+
+    loadCart();
+  </script>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preview Cart</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <script src="main.js"></script>
+    <link rel="shortcut icon" href="#" />
+  </head>
+
+  <body>
+    <script src="headerBar.js"></script>
+    <div class="topnavMargin">
+      <main>
+        <h1>My Shopping Cart</h1>
+        <hr />
+        <div id="displayCart"></div>
+        <h3 id="totalPrice"></h3>
+        <button onclick="location.href='main.html'">Back</button>
+        <button onclick="location.href='checkout.html'">Checkout</button>
+      </main>
+    </div>
+    <script>
+      let cart;
+
+      let totalPrice = 0;
+
+      checkIsAuthenticated().then((isAuthenticated) => {
+        if (isAuthenticated) {
+          // If not authenticated user, cart info is in database
+          getCart().then((data) => {
+            cart = data;
+            for (let music of cart) {
+              let slot = document.createElement("div");
+              slot.className = "cartSlot";
+              let slotName = document.createElement("h3");
+              let slotQuantity = document.createElement("h3");
+
+              slotName.innerHTML = "Music Name : " + music.musicName;
+              slotQuantity.innerHTML = "Quantity : " + music.quantity;
+              slot.append(slotName);
+              slot.append(slotQuantity);
+
+              let dltButn = document.createElement("Button");
+              dltButn.innerHTML = "Delete";
+              dltButn.id = music.musicId;
+              dltButn.addEventListener("click", (e) => {
+                console.log(e.target.id);
+                deleteRecord(e.target.id).then(() => {
+                  getTotal().then((totalQuantity) => {
+                    total.innerText = totalQuantity;
+                    sessionStorage.totalQuantity = totalQuantity;
+                  });
+                  getCart().then((data) => {
+                    cart = data;
+                    totalPrice = 0;
+                    for (let tempMusic of cart) {
+                      totalPrice += tempMusic.price * tempMusic.quantity;
+                    }
+                    document.getElementById("totalPrice").innerHTML = "Total Price : $ " + totalPrice;
+                  });
+                });
+
+                e.target.parentElement.remove();
+              });
+              slot.append(dltButn);
+              slot.append(document.createElement("hr"));
+              document.getElementById("displayCart").append(slot);
+              totalPrice += music.price * music.quantity;
+            }
+            document.getElementById("totalPrice").innerHTML = "Total Price : $ " + totalPrice;
+          });
+        } else {
+          // If not authenticated user, cart info is in session storage
+          cart = sessionStorage.cart == null ? [] : JSON.parse(sessionStorage.cart);
+          for (let music of cart) {
+            let slot = document.createElement("div");
+            slot.className = "cartSlot";
+            let slotName = document.createElement("h3");
+            let slotQuantity = document.createElement("h3");
+
+            slotName.innerHTML = "Music Name : " + music.musicName;
+            slotQuantity.innerHTML = "Quantity : " + music.quantity;
+            slot.append(slotName);
+            slot.append(slotQuantity);
+
+            dltButn = document.createElement("Button");
+            dltButn.innerHTML = "Delete";
+            dltButn.id = music.musicId;
+            dltButn.addEventListener("click", (e) => {
+              let tempCart = JSON.parse(sessionStorage.cart);
+              // Update item cart num
+              tempMusic = cart.find((x) => x.musicId == e.target.id);
+              addTotalQuantity(-tempMusic.quantity);
+              // Update price
+              totalPrice -= tempMusic.price * tempMusic.quantity;
+              document.getElementById("totalPrice").innerHTML = "Total Price : $ " + totalPrice;
+              // Delete from session storage
+              tempCart = tempCart.filter((el) => el.musicId != e.target.id);
+              sessionStorage.cart = JSON.stringify(tempCart);
+
+              e.target.parentElement.remove();
+            });
+
+            slot.append(dltButn);
+            slot.append(document.createElement("hr"));
+            document.getElementById("displayCart").append(slot);
+            totalPrice += music.price * music.quantity;
+          }
+          document.getElementById("totalPrice").innerHTML = "Total Price : $ " + totalPrice;
+        }
+      });
+
+      async function getCart() {
+        try {
+          let response = await fetch("cart.php?filter=all");
+
+          if (response.status == 200) {
+            let data = await response.json();
+            return data;
+          }
+        } catch (error) {
+          console.log("error");
+        }
+      }
+
+      async function deleteRecord(musicId) {
+        try {
+          let init = {
+            method: "POST",
+            body: "musicId=" + musicId + "&method=DELETE",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          };
+
+          let response = await fetch("cart.php", init);
+
+          if (response.status == 200) {
+            let data = await response.text();
+
+            return data == "Deleted" ? true : false;
+          }
+        } catch (error) {
+          console.log("error");
+        }
+      }
+    </script>
+  </body>
+</html>

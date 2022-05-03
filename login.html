@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="shortcut icon" href="#" />
+    <script src="main.js"></script>
+  </head>
+
+  <body class="formPage">
+    <script src="headerBar.js"></script>
+    <div class="topnavMargin">
+      <main>
+        <div class="formContainer">
+          <h1>Music Store - Login</h1>
+          <!-- TODO Cannot use form Customise alert when missing msg -->
+
+          <!-- TODO to remove default values -->
+          <input type="text" placeholder="Username" name="username" required="hello" />
+          <input type="password" placeholder="Password" name="pwd" required />
+          <button id="loginFormButn" class="formButn">SUBMIT</button>
+          <a href="createAcct.html" class="formButn" role="button">CREATE</a>
+          <span id="status"></span>
+        </div>
+        <div class="crop">
+          <img
+            src="https://media.newyorker.com/photos/5fb2a9674169cfc0421fd9f8/master/w_2240,c_limit/2020-YearinReview-BestMusic.gif"
+          />
+        </div>
+      </main>
+    </div>
+    <script>
+      let username = document.querySelector("input[name='username']");
+      let pwd = document.querySelector("input[name='pwd']");
+      username.focus();
+      document.getElementById("loginFormButn").addEventListener("click", () => {
+        if (username.validity.valueMissing) {
+          alert("Please do not leave the fields empty!!");
+          username.focus();
+          return;
+        }
+        if (pwd.validity.valueMissing) {
+          alert("Please do not leave the fields empty!!");
+          pwd.focus();
+          return;
+        }
+        let xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function () {
+          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            let status = document.getElementById("status");
+            if (sessionStorage.totalQuantity != null) {
+              sessionStorage.removeItem("totalQuantity");
+              cart = sessionStorage.cart == null ? [] : JSON.parse(sessionStorage.cart);
+              for (let music of cart) {
+                addToCartDB(music.musicId, music.quantity);
+              }
+              sessionStorage.removeItem("cart");
+            }
+            if (xmlhttp.responseText == "Success") {
+              location.replace("main.html");
+            } else {
+              let msgArea = document.getElementsByClassName("formContainer")[0];
+              msgArea.innerHTML = "<h1 class='msg'>" + xmlhttp.responseText + "</h1>";
+              msgArea.innerHTML += "<h1 class='msg'> Redirecting back to Login </h1>";
+              setTimeout(() => {
+                location.replace("login.html");
+              }, 3000);
+            }
+          }
+        };
+        xmlhttp.open("POST", "verifyLogin.php", true);
+        xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xmlhttp.send("username=" + username.value + "&pwd=" + pwd.value);
+      });
+    </script>
+  </body>
+</html>

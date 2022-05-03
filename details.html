@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music Details</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="shortcut icon" href="#" />
+    <script src="main.js"></script>
+  </head>
+  <body>
+    <script src="headerBar.js"></script>
+    <div class="topnavMargin">
+      <main>
+        <div id="currentLinkBar"><a href="main.html">Home</a> >> <a href="details.html" id="currentLink"></a></div>
+        <h2 id="musicName"></h2>
+        <img id="musicImg" width="300" /><br />
+        <audio id="musicAudio" controls>
+          <source id="musicSource" type="audio/mp3" src="Materials/m1.mp3" />
+          Your browser does not support the audio element.
+        </audio>
+        <p id="musicComposer"></p>
+        <p id="musicPublished"></p>
+        <p id="musicCategory"></p>
+        <p id="musicDescription"></p>
+        <p id="musicPrice"></p>
+        <div id="placeOrder">
+          Order:
+          <input type="text" name="quantity" value="1" />
+          <button id="addToCart" class="cart">Add to Cart</button>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      let cart;
+
+      let musicAbstract = {};
+
+      if (sessionStorage.musicId != null) {
+        getMusicDetails(sessionStorage.musicId)
+          .then(() => {
+            musicAbstract.musicId = sessionStorage.musicId;
+
+            musicAbstract.musicName = document.getElementById("musicName").innerHTML;
+            priceStr = document.getElementById("musicPrice").innerHTML;
+            musicAbstract.price = +priceStr.substring(8);
+          })
+          .then(() => {
+            checkIsAuthenticated().then((isAuthenticated) => {
+              if (isAuthenticated) {
+                document.getElementById("addToCart").addEventListener("click", async () => {
+                  musicAbstract.quantity = +document.querySelector("input[name='quantity']").value;
+                  await addToCartDB(musicAbstract.musicId, musicAbstract.quantity);
+                  getTotal().then((totalQuantity) => {
+                    console.log("get total" + totalQuantity);
+                    total.innerText = totalQuantity;
+                    sessionStorage.totalQuantity = totalQuantity;
+                  });
+                });
+              } else {
+                document.getElementById("addToCart").addEventListener("click", () => {
+                  cart = sessionStorage.cart == null ? [] : JSON.parse(sessionStorage.cart);
+                  let isNew = true;
+                  musicAbstract.quantity = +document.querySelector("input[name='quantity']").value;
+                  for (let music of cart) {
+                    console.log(music.musicId);
+                    if (music.musicId == musicAbstract.musicId) {
+                      isNew = false;
+                      music.quantity += +document.querySelector("input[name='quantity']").value;
+                    }
+                  }
+
+                  if (isNew) cart.push(musicAbstract);
+
+                  sessionStorage.cart = JSON.stringify(cart);
+
+                  addTotalQuantity(+document.querySelector("input[name='quantity']").value);
+                });
+              }
+            });
+          });
+      }
+    </script>
+  </body>
+</html>

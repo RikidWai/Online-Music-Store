@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="shortcut icon" href="#" />
+    <script src="main.js"></script>
+  </head>
+  <main>
+    <hr />
+    <h1>Invoice</h1>
+    <div id="addressInfo"></div>
+    <div id="cartInfo">
+      <div id="musicList"></div>
+      <p id="totalPrice"></p>
+    </div>
+    <hr />
+    <p style="text-align: center">Thanks for ordering. Your music will be delivered within 7 workdays.</p>
+    <div class="center"><button id="okay" style="text-align: center">OK</button></div>
+  </main>
+
+  <script>
+    // TODO clear cart from database
+    let invoice = JSON.parse(sessionStorage.invoice);
+
+    let addressInfo = document.getElementById("addressInfo");
+    addressInfo.innerHTML = `<span><b>Full Name: </b>${invoice.fullName}</span> &emsp;<span><b>Comapny: </b> ${invoice.companyName}</span><br>`;
+    addressInfo.innerHTML += `<span><b>Address Line 1: </b>${invoice.addrline1}</span><br>`;
+    addressInfo.innerHTML += `<span><b>Address Line 2: </b>${invoice.addrline2}</span><br>`;
+    addressInfo.innerHTML += `<span><b>City: </b>${invoice.city}</span> &emsp;<span><b>Region: </b> ${invoice.region}</span> &emsp;<span><b>Country: </b> ${invoice.country}</span><br>`;
+    addressInfo.innerHTML += `<span><b>Postcode: </b>${invoice.postZipCode}</span><br>`;
+
+    let cartInfo = document.getElementById("cartInfo");
+    let totalPrice = 0;
+
+    for (let music of invoice.cart) {
+      document.getElementById("musicList").innerHTML +=
+        "<div>" + music.quantity + " x " + music.musicName + "  HK$ " + music.price * music.quantity + "</div>";
+      totalPrice += music.price * music.quantity;
+    }
+
+    document.getElementById("totalPrice").innerHTML = "Total Price : HK$ " + totalPrice;
+    document.getElementById("okay").addEventListener("click", (evt) => {
+      sessionStorage.clear();
+      location.replace("main.html");
+    });
+  </script>
+</html>

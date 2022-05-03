@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Main Page</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <script src="main.js"></script>
+    <link rel="shortcut icon" href="#" />
+  </head>
+  <body id="mainPage">
+    <script src="headerBar.js"></script>
+    <div class="topnavMargin">
+      <aside id="sidebar">
+        <div id="nav-title">Category</div>
+        <button id="classicalButn" onclick="getMusicByCat('Classical')">Classical</button><br />
+        <button id="barogueButn" onclick="getMusicByCat('Baroque')">Baroque</button><br />
+        <button id="romanticButn" onclick="getMusicByCat('Romantic')">Romantic</button><br />
+        <button id="late19thButn" onclick="getMusicByCat('Late 19th')">Late 19th</button><br />
+      </aside>
+      <main>
+        <div id="currentLinkBar"><a href="main.html" id="currentLink">Home</a></div>
+        <h1 id="displayAreaTitle">All Music</h1>
+        <div id="displayArea"></div>
+      </main>
+    </div>
+
+    <script>
+      getMusicByCat("all");
+    </script>
+  </body>
+</html>
